@@ -45,6 +45,9 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm install
+            - name: Prepara sintesi vocale
+        run: npm run build:tts
+    
       - run: npx cap add android
       - name: versionCode crescente (permette gli aggiornamenti senza perdere i dati)
         run: sed -i -E "s/versionCode[ =]+1/versionCode ${GITHUB_RUN_NUMBER}/" android/app/build.gradle
