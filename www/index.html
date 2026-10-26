@@ -517,70 +517,172 @@ function checkFill() {
 $("btnPrev").addEventListener("click", () => { if (currentIndex > 0) { currentIndex--; revealed = false; renderDialogue(); } });
 $("btnNext").addEventListener("click", () => { if (currentIndex < dialogues.length - 1) { currentIndex++; revealed = false; renderDialogue(); } });
 
-// ============ TTS ============
+// ============ TTS ==========
+  
+ // ============ TTS ANDROID + BROWSER ============
 function chooseVoice(lang) {
   if (!window.speechSynthesis) return null;
+
   const voices = window.speechSynthesis.getVoices();
-  const w = String(lang || "en-GB").toLowerCase();
-  return voices.find(v => v.lang && v.lang.toLowerCase() === w) ||
-         voices.find(v => v.lang && v.lang.toLowerCase().startsWith(w.split("-")[0])) ||
-         voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) || null;
+  const wanted = String(lang || "en-GB").toLowerCase();
+
+  return voices.find(v => v.lang && v.lang.toLowerCase() === wanted) ||
+         voices.find(v => v.lang && v.lang.toLowerCase().startsWith(wanted.split("-")[0])) ||
+         voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+         null;
 }
 
-function speakText(text, btn) {
-  if (!window.speechSynthesis) { alert("TTS non supportato."); return; }
-  window.speechSynthesis.cancel();
-  document.querySelectorAll(".speak-btn, .question-box").forEach(b => b.classList.remove("speaking"));
-  setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(text);
-    const lang = settings.voice || "en-GB";
-    const v = chooseVoice(lang);
-    u.lang = lang; if (v) u.voice = v;
-    u.rate = 0.95; u.pitch = 1; u.volume = 1;
-    if (btn) {
-      btn.classList.add("speaking");
-      u.onend = () => btn.classList.remove("speaking");
-      u.onerror = () => btn.classList.remove("speaking");
+let speakingToken = 0;
+
+async function speakText(text, btn) {
+  const phrase = String(text || "").trim();
+  if (!phrase) return;
+
+  const token = ++speakingToken;
+
+  document.querySelectorAll(".speak-btn, .question-box")
+    .forEach(el => el.classList.remove("speaking"));
+
+  if (btn) btn.classList.add("speaking");
+
+  try {
+    // Android: usa il plugin nativo se disponibile.
+    if (window.WordQuizTTS && window.WordQuizTTS.isNative) {
+      await window.WordQuizTTS.speak(
+        phrase,
+        settings.voice || "en-GB"
+      );
+      return;
     }
-    window.speechSynthesis.speak(u);
-  }, 70);
+
+    // PWA e Windows: usa la sintesi vocale del browser.
+    if (!window.speechSynthesis || !("SpeechSynthesisUtterance" in window)) {
+      throw new Error("La sintesi vocale non è disponibile su questo dispositivo.");
+    }
+
+    window.speechSynthesis.cancel();
+
+    await new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(phrase);
+      const lang = settings.voice || "en-GB";
+      const voice = chooseVoice(lang);
+
+      utterance.lang = lang;
+      if (voice) utterance.voice = voice;
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      utterance.onend = resolve;
+      utterance.onerror = event => {
+        if (event.error === "canceled" || event.error === "interrupted") {
+          resolve();
+        } else {
+          reject(new Error("Errore durante la riproduzione della voce."));
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    });
+  } catch (error) {
+    console.error("Errore TTS:", error);
+    alert(error.message || "Non è stato possibile riprodurre la voce.");
+  } finally {
+    if (token === speakingToken && btn) {
+      btn.classList.remove("speaking");
+    } else if (btn) {
+      btn.classList.remove("speaking");
+    }
+  }
 }
 
-function stopSpeaking() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  document.querySelectorAll(".speak-btn, .question-box").forEach(b => b.classList.remove("speaking"));
+async function stopSpeaking() {
+  ++speakingToken;
+
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+
+  if (window.WordQuizTTS && window.WordQuizTTS.isNative) {
+    try {
+      await window.WordQuizTTS.stop();
+    } catch (error) {
+      console.warn("Impossibile fermare il TTS nativo:", error);
+    }
+  }
+
+  document.querySelectorAll(".speak-btn, .question-box")
+    .forEach(el => el.classList.remove("speaking"));
 }
 
-$("speak1").addEventListener("click", function() { speakText(dialogues[currentIndex]?.phrase1En || "", this); });
-$("speak2").addEventListener("click", function() { speakText(dialogues[currentIndex]?.phrase2En || "", this); });
+$("speak1").addEventListener("click", function() {
+  speakText(dialogues[currentIndex]?.phrase1En || "", this);
+});
+
+$("speak2").addEventListener("click", function() {
+  speakText(dialogues[currentIndex]?.phrase2En || "", this);
+});
+
 $("btnSpeakAll").addEventListener("click", function() {
-  const d = dialogues[currentIndex]; if (!d) return;
+  const d = dialogues[currentIndex];
+  if (!d) return;
   speakText(`${d.phrase1En}. ${d.phrase2En}.`, this);
 });
+
 $("btnStop").addEventListener("click", stopSpeaking);
 
 function refreshVoiceInfo() {
   const box = $("voiceInfo");
-  if (!window.speechSynthesis) { box.className = "voice-info show warn"; box.textContent = "TTS non supportato."; return; }
+
+  // Il plugin Android gestisce la voce tramite il sistema del dispositivo.
+  if (window.WordQuizTTS && window.WordQuizTTS.isNative) {
+    box.className = "voice-info show ok";
+    box.textContent = `Voce Android selezionata: ${settings.voice || "en-GB"}. La disponibilità dipende dalle voci installate sul dispositivo.`;
+    return;
+  }
+
+  if (!window.speechSynthesis) {
+    box.className = "voice-info show warn";
+    box.textContent = "Sintesi vocale non supportata da questo browser.";
+    return;
+  }
+
   const voices = window.speechSynthesis.getVoices();
-  const v = chooseVoice(settings.voice);
-  if (v) { box.className = "voice-info show ok"; box.textContent = `Voce: ${v.name} (${v.lang})`; }
-  else if (voices.length) { box.className = "voice-info show warn"; box.textContent = "Nessuna voce inglese. Uso predefinita."; }
-  else { box.className = "voice-info show warn"; box.textContent = "Voci in caricamento..."; }
+  const voice = chooseVoice(settings.voice);
+
+  if (voice) {
+    box.className = "voice-info show ok";
+    box.textContent = `Voce: ${voice.name} (${voice.lang})`;
+  } else if (voices.length) {
+    box.className = "voice-info show warn";
+    box.textContent = "Voce inglese specifica non trovata. Verrà usata la voce disponibile.";
+  } else {
+    box.className = "voice-info show warn";
+    box.textContent = "Voci in caricamento...";
+  }
 }
 
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = refreshVoiceInfo;
-  setTimeout(refreshVoiceInfo, 200); setTimeout(refreshVoiceInfo, 700); setTimeout(refreshVoiceInfo, 1500);
+  setTimeout(refreshVoiceInfo, 200);
+  setTimeout(refreshVoiceInfo, 700);
+  setTimeout(refreshVoiceInfo, 1500);
 }
 
 $("voiceLang").addEventListener("change", e => {
   settings.voice = e.target.value;
-  saveData('settings', settings);
+  saveData("settings", settings);
+
   if (recognition) recognition.lang = settings.voice;
+
   refreshVoiceInfo();
 });
-$("btnTestVoice").addEventListener("click", function() { speakText("Hello! This is a test.", this); });
+
+$("btnTestVoice").addEventListener("click", function() {
+  speakText("Hello! This is a test.", this);
+});
+
 
 // ============ MIC ============
 function initMic() {
