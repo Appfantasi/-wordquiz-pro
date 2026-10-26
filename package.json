@@ -1,16 +1,19 @@
+
 {
   "name": "wordquiz-pro",
   "version": "1.0.0",
-  "description": "WordQuiz Pro - Likes & Feelings",
+  "description": "WordQuiz Pro",
   "author": "WordQuiz",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
     "prova": "npx --yes http-server www -p 8080 -c-1",
     "start": "electron .",
-    "win": "electron-builder --win --x64"
+    "win": "electron-builder --win --x64",
+    "build:tts": "esbuild scripts/tts-entry.js --bundle --platform=browser --format=iife --outfile=www/tts.bundle.js"
   },
   "devDependencies": {
+    "@capacitor-community/text-to-speech": "^6.0.0",
     "@capacitor/android": "^7.2.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^7.2.0",
@@ -18,7 +21,8 @@
     "@capacitor/filesystem": "^7.0.0",
     "@capacitor/share": "^7.0.0",
     "electron": "^33.2.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "esbuild": "^0.25.0"
   },
   "build": {
     "appId": "com.wordquiz.pro",
@@ -29,13 +33,11 @@
     "files": [
       "electron/**",
       "www/**",
+      "scripts/tts-entry.js",
       "package.json"
     ],
     "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
+      "target": ["nsis", "portable"],
       "icon": "www/icons/icon-512.png"
     },
     "nsis": {
