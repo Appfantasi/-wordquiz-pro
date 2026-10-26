@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>WordQuiz Pro - Likes & Feelings</title>
+<meta name="theme-color" content="#667eea" />
+<meta name="description" content="App PWA per imparare i pronomi personali complemento con like, love, hate, enjoy, mind." />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="WordQuiz Pro" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:linear-gradient(135deg,#667eea,#764ba2); min-height:100vh; padding:8px; color:#333; font-size:16px; }
+.container { max-width:860px; margin:0 auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 18px 50px rgba(0,0,0,.3); }
+header { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:18px 14px; text-align:center; }
+header h1 { font-size:1.6rem; margin-bottom:4px; }
+header p { opacity:.92; font-size:.92rem; }
+.tabs { display:flex; overflow-x:auto; background:#f3f3f3; border-bottom:2px solid #ddd; scrollbar-width:none; }
+.tabs::-webkit-scrollbar { display:none; }
+.tab { flex:1; min-width:92px; border:none; background:#f3f3f3; padding:12px 8px; font-weight:700; font-size:.88rem; color:#555; cursor:pointer; white-space:nowrap; }
+.tab.active { background:#fff; color:#667eea; border-bottom:3px solid #667eea; }
+.content { padding:16px; }
+.tab-content { display:none; }
+.tab-content.active { display:block; animation:fade .18s ease; }
+@keyframes fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+h2 { font-size:1.25rem; margin-bottom:6px; }
+.subtitle { color:#666; font-size:.92rem; margin-bottom:14px; }
+.panel { background:#f9f9f9; border:2px solid #e5e5e5; border-radius:14px; padding:14px; margin-bottom:14px; }
+.mode-buttons { display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.mode-btn { flex:1; min-width:90px; border:2px solid #d5d5d5; background:#fff; border-radius:10px; padding:11px 6px; font-weight:800; color:#555; cursor:pointer; font-size:.9rem; }
+.mode-btn.active { background:#667eea; border-color:#667eea; color:#fff; }
+.mode-info { background:#eef2ff; border-left:4px solid #667eea; padding:10px 12px; border-radius:10px; font-size:.9rem; margin-bottom:14px; color:#333; }
+.dialogue-top { display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+.dialogue-title { font-weight:800; color:#667eea; font-size:1rem; line-height:1.3; }
+.nav-buttons { display:flex; gap:8px; }
+.phrase-box { background:#fff; border-radius:12px; padding:13px; border-left:4px solid #667eea; box-shadow:0 1px 4px rgba(0,0,0,.05); margin-bottom:12px; }
+.phrase-row { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.phrase-text { flex:1; min-width:0; }
+.p-en { font-size:1.12rem; font-weight:800; margin-bottom:4px; word-break:break-word; }
+.p-it { color:#555; margin-bottom:4px; word-break:break-word; }
+.p-ipa { color:#888; font-size:.86rem; font-style:italic; word-break:break-word; }
+.speak-btn { width:46px; height:46px; border:none; border-radius:50%; background:#667eea; color:#fff; font-size:1.15rem; cursor:pointer; flex:0 0 auto; }
+.speak-btn:active { transform:scale(.92); }
+.speak-btn.speaking { background:#22c55e; animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.08); } }
+.blurred { filter:blur(7px); user-select:none; pointer-events:none; }
+.btn { border:none; border-radius:11px; padding:12px 14px; font-weight:800; cursor:pointer; font-size:.95rem; transition:all .2s; }
+.btn:disabled { opacity:.55; cursor:not-allowed; }
+.btn-primary { background:#667eea; color:#fff; }
+.btn-primary:active { background:#5568d3; }
+.btn-secondary { background:#e5e5e5; color:#333; }
+.btn-success { background:#22c55e; color:#fff; }
+.btn-warning { background:#f59e0b; color:#fff; }
+.btn-danger { background:#ef4444; color:#fff; }
+.btn-block { width:100%; }
+.btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.btn-row .btn { flex:1; min-width:120px; }
+.text-input, .form-input, select { width:100%; border:2px solid #d5d5d5; border-radius:11px; padding:12px; font-size:1rem; background:#fff; color:#333; }
+.text-input:focus, .form-input:focus, select:focus { outline:none; border-color:#667eea; }
+.feedback { margin-top:10px; font-weight:800; }
+.feedback.ok { color:#16a34a; }
+.feedback.no { color:#dc2626; }
+.mic-box { text-align:center; }
+.mic-note { color:#666; font-size:.87rem; margin:8px 0 12px; }
+.mic-result { margin-top:12px; min-height:52px; background:#fff; border:2px dashed #cfcfcf; border-radius:12px; padding:12px; font-size:1.02rem; word-break:break-word; }
+.mic-result.listening { border-color:#22c55e; color:#16a34a; font-weight:800; }
+.mic-status { margin-top:8px; font-size:.88rem; min-height:20px; }
+.mic-status.ok { color:#16a34a; }
+.mic-status.err { color:#dc2626; }
+.stats-row { display:flex; gap:10px; margin-bottom:14px; }
+.stat-card { flex:1; background:#f9f9f9; border:2px solid #e5e5e5; border-radius:14px; padding:14px; text-align:center; }
+.stat-value { font-size:2rem; font-weight:900; color:#667eea; }
+.stat-label { color:#666; font-size:.85rem; margin-top:3px; }
+.question-box { background:#f9f9f9; border:2px solid #e5e5e5; border-radius:14px; padding:16px; text-align:center; font-size:1.15rem; font-weight:800; margin-bottom:12px; word-break:break-word; cursor:pointer; transition:all .2s; }
+.question-box:hover { background:#eef2ff; border-color:#667eea; }
+.question-box.speaking { background:#dcfce7; border-color:#22c55e; }
+.question-hint { display:block; font-size:.75rem; color:#888; font-weight:400; margin-top:8px; }
+.options { display:grid; gap:10px; margin-bottom:12px; }
+.option { background:#fff; border:2px solid #dedede; border-radius:12px; padding:13px; cursor:pointer; font-weight:700; word-break:break-word; }
+.option:active { border-color:#667eea; background:#eef2ff; }
+.option.correct { background:#22c55e; border-color:#22c55e; color:#fff; }
+.option.wrong { background:#ef4444; border-color:#ef4444; color:#fff; }
+.option.disabled { pointer-events:none; opacity:.96; }
+.blank { display:inline-block; min-width:90px; border-bottom:3px solid #667eea; margin:0 5px; font-weight:900; color:#667eea; }
+.form-group { margin-bottom:12px; }
+.form-label { display:block; font-weight:800; margin-bottom:6px; font-size:.92rem; }
+.saved-item { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#fff; border:2px solid #e5e5e5; border-radius:12px; padding:12px; margin-bottom:10px; }
+.saved-item-info { min-width:0; flex:1; }
+.saved-item-info h4 { color:#667eea; margin-bottom:4px; word-break:break-word; font-size:.95rem; }
+.saved-item-info p { color:#666; font-size:.85rem; word-break:break-word; }
+.voice-info { margin-top:10px; border-radius:10px; padding:10px 12px; font-size:.9rem; display:none; }
+.voice-info.show { display:block; }
+.voice-info.ok { background:#dcfce7; color:#166534; }
+.voice-info.warn { background:#fef9c3; color:#854d0e; }
+.footer-note { padding:12px 16px 18px; color:#777; font-size:.84rem; text-align:center; }
+@media (max-width:600px) { .mode-buttons { flex-direction:column; } .nav-buttons { width:100%; } .nav-buttons .btn { flex:1; } .stats-row { gap:8px; } .stat-value { font-size:1.65rem; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📘 WordQuiz Pro</h1>
+    <p>Pronomi complemento · like, love, hate, enjoy, mind</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dialogues">💬 Dialoghi</button>
+    <button class="tab" data-tab="cloze">✍️ Cloze</button>
+    <button class="tab" data-tab="test">✓ Test</button>
+    <button class="tab" data-tab="contents">🗂️ Contenuti</button>
+    <button class="tab" data-tab="settings">⚙️ Impostazioni</button>
+  </div>
+
+  <div class="content">
+
+    <section id="dialogues" class="tab-content active">
+      <h2>Dialoghi inglesi</h2>
+      <div class="subtitle">Ascolta, ripeti e studia le due battute.</div>
+      <div class="mode-buttons">
+        <button class="mode-btn" data-mode="A">A · Visibile</button>
+        <button class="mode-btn" data-mode="B">B · Scopri</button>
+        <button class="mode-btn active" data-mode="C">C · Completa</button>
+      </div>
+      <div class="mode-info" id="modeInfo"></div>
+      <div class="panel">
+        <div class="dialogue-top">
+          <div class="dialogue-title" id="dlgTitle">Dialogo</div>
+          <div class="nav-buttons">
+            <button class="btn btn-secondary" id="btnPrev">← Precedente</button>
+            <button class="btn btn-secondary" id="btnNext">Successivo →</button>
+          </div>
+        </div>
+        <div class="phrase-box">
+          <div class="phrase-row">
+            <div class="phrase-text">
+              <div class="p-en" id="p1en"></div>
+              <div class="p-it" id="p1it"></div>
+              <div class="p-ipa" id="p1ipa"></div>
+            </div>
+            <button class="speak-btn" id="speak1" title="Ascolta frase 1">🔊</button>
+          </div>
+        </div>
+        <div class="phrase-box">
+          <div class="phrase-row">
+            <div class="phrase-text" id="p2wrap">
+              <div class="p-en" id="p2en"></div>
+              <div class="p-it" id="p2it"></div>
+              <div class="p-ipa" id="p2ipa"></div>
+            </div>
+            <button class="speak-btn" id="speak2" title="Ascolta frase 2">🔊</button>
+          </div>
+          <div id="p2area"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnSpeakAll">▶ Ascolta dialogo completo</button>
+          <button class="btn btn-secondary" id="btnStop">⏹ Ferma audio</button>
+        </div>
+      </div>
+      <div class="panel mic-box">
+        <h3>🎙️ Prova a parlare</h3>
+        <div class="mic-note">Il riconoscimento vocale funziona su Chrome/Edge/Android e richiede connessione internet.</div>
+        <button class="btn btn-primary btn-block" id="btnMic">🎤 Inizia a parlare</button>
+        <div class="mic-status" id="micStatus"></div>
+        <div class="mic-result" id="micResult">Il testo riconosciuto apparirà qui.</div>
+      </div>
+    </section>
+
+    <section id="cloze" class="tab-content">
+      <h2>Cloze</h2>
+      <div class="subtitle">Completa la parola mancante.</div>
+      <div class="panel" style="text-align:center;">
+        <div class="question-box" id="clozeSentence">Premi "Prossimo" per iniziare</div>
+        <input type="text" class="text-input" id="clozeInput" placeholder="Scrivi la parola mancante" autocomplete="off" />
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnCheckCloze">Controlla</button>
+          <button class="btn btn-secondary" id="btnSpeakCloze">🔊 Ascolta</button>
+          <button class="btn btn-secondary" id="btnNextCloze">Prossimo</button>
+        </div>
+        <div class="feedback" id="clozeFeedback"></div>
+      </div>
+    </section>
+
+    <section id="test" class="tab-content">
+      <h2>Test</h2>
+      <div class="subtitle">Scegli la traduzione corretta. Clicca sulla frase inglese per ascoltarla.</div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value" id="statCorrect">0</div><div class="stat-label">Corrette</div></div>
+        <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tentativi</div></div>
+      </div>
+      <div class="question-box" id="testQuestion">Premi "Nuova domanda"<span class="question-hint">🔊 Clicca per ascoltare</span></div>
+      <div class="options" id="testOptions"></div>
+      <button class="btn btn-primary btn-block" id="btnNewQuestion">Nuova domanda</button>
+    </section>
+
+    <section id="contents" class="tab-content">
+      <h2>Contenuti</h2>
+      <div class="subtitle">Aggiungi dialoghi, esporta o importa un backup JSON.</div>
+      <div class="panel">
+        <form id="dlgForm">
+          <div class="form-group"><label class="form-label">Titolo</label><input type="text" class="form-input" id="fTitle" required /></div>
+          <div class="form-group"><label class="form-label">Frase 1 — inglese</label><input type="text" class="form-input" id="f1en" required /></div>
+          <div class="form-group"><label class="form-label">Italiano 1</label><input type="text" class="form-input" id="f1it" required /></div>
+          <div class="form-group"><label class="form-label">IPA 1 (opzionale)</label><input type="text" class="form-input" id="f1ipa" /></div>
+          <div class="form-group"><label class="form-label">Frase 2 — inglese</label><input type="text" class="form-input" id="f2en" required /></div>
+          <div class="form-group"><label class="form-label">Italiano 2</label><input type="text" class="form-input" id="f2it" required /></div>
+          <div class="form-group"><label class="form-label">IPA 2 (opzionale)</label><input type="text" class="form-input" id="f2ipa" /></div>
+          <button type="submit" class="btn btn-success btn-block">Salva dialogo</button>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn btn-secondary" id="btnExport">⬇️ Esporta JSON</button>
+          <button class="btn btn-secondary" id="btnImport">⬆️ Importa JSON</button>
+          <input type="file" id="importFile" accept=".json,application/json" style="display:none;" />
+        </div>
+        <div class="subtitle" id="importStatus" style="margin-top:10px; margin-bottom:0;"></div>
+      </div>
+      <h3 style="margin:16px 0 10px;">Dialoghi salvati (<span id="savedCount">0</span>)</h3>
+      <div id="savedList"></div>
+    </section>
+
+    <section id="settings" class="tab-content">
+      <h2>Impostazioni</h2>
+      <div class="panel">
+        <h3 style="margin-bottom:10px;">Modalità principale</h3>
+        <label style="display:block; margin:8px 0;"><input type="radio" name="settingsMode" value="A" /> A — Entrambe visibili</label>
+        <label style="display:block; margin:8px 0;"><input type="radio" name="settingsMode" value="B" /> B — Scopri la risposta</label>
+        <label style="display:block; margin:8px 0;"><input type="radio" name="settingsMode" value="C" checked /> C — Completa (predefinita)</label>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:10px;">Lingua della voce</h3>
+        <select id="voiceLang" class="form-input">
+          <option value="en-GB">Inglese britannico (en-GB)</option>
+          <option value="en-US">Inglese americano (en-US)</option>
+        </select>
+        <div class="voice-info" id="voiceInfo"></div>
+        <div class="btn-row"><button class="btn btn-primary" id="btnTestVoice">▶ Prova la voce</button></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:10px;">Database e backup</h3>
+        <div class="subtitle" style="margin-bottom:12px;">I dati vengono salvati in IndexedDB. Se non disponibile, usa localStorage.</div>
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn btn-secondary" id="btnDownload">Scarica backup</button>
+          <button class="btn btn-warning" id="btnRestore">Ripristina 50 inclusi</button>
+          <button class="btn btn-danger" id="btnResetTest">Azzera test</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <div class="footer-note">WordQuiz Pro · dati salvati localmente</div>
+</div>
+
+<script>
+// ============ 50 DIALOGHI INCLUSI ============
+const STARTER_DIALOGUES = [
+  {title:"01 like + him",phrase1En:"Do you like him?",phrase1It:"Lui ti piace?",phrase1Ipa:"",phrase2En:"Yes, I like him very much.",phrase2It:"Sì, mi piace molto.",phrase2Ipa:""},
+  {title:"02 love + her",phrase1En:"Does he love her?",phrase1It:"Lui la ama?",phrase1Ipa:"",phrase2En:"Yes, he loves her deeply.",phrase2It:"Sì, la ama profondamente.",phrase2Ipa:""},
+  {title:"03 hate + it",phrase1En:"Do you hate it here?",phrase1It:"Odi questo posto?",phrase1Ipa:"",phrase2En:"No, I don't hate it at all.",phrase2It:"No, non lo odio affatto.",phrase2Ipa:""},
+  {title:"04 enjoy + them",phrase1En:"Do you enjoy them?",phrase1It:"Ti piacciono?",phrase1Ipa:"",phrase2En:"Yes, I really enjoy them.",phrase2It:"Sì, mi piacciono davvero.",phrase2Ipa:""},
+  {title:"05 mind + me",phrase1En:"Do you mind helping me?",phrase1It:"Ti dispiace aiutarmi?",phrase1Ipa:"",phrase2En:"No, I don't mind helping you.",phrase2It:"No, non mi dispiace aiutarti.",phrase2Ipa:""},
+  {title:"06 can't stand + them",phrase1En:"Can you stand them?",phrase1It:"Li sopporti?",phrase1Ipa:"",phrase2En:"No, I can't stand them.",phrase2It:"No, non li sopporto.",phrase2Ipa:""},
+  {title:"07 quite like + her",phrase1En:"Do you quite like her?",phrase1It:"Lei ti piace abbastanza?",phrase1Ipa:"",phrase2En:"Yes, I quite like her.",phrase2It:"Sì, mi piace abbastanza.",phrase2Ipa:""},
+  {title:"08 dislike + him",phrase1En:"Why do you dislike him?",phrase1It:"Perché non ti piace lui?",phrase1Ipa:"",phrase2En:"Because he is very rude.",phrase2It:"Perché è molto maleducato.",phrase2Ipa:""},
+  {title:"09 like + us",phrase1En:"Does she like us?",phrase1It:"Noi le piacciamo?",phrase1Ipa:"",phrase2En:"Yes, she likes us a lot.",phrase2It:"Sì, le piacciamo molto.",phrase2Ipa:""},
+  {title:"10 love + it",phrase1En:"Do you love it?",phrase1It:"Ti piace moltissimo?",phrase1Ipa:"",phrase2En:"Yes, I love it very much.",phrase2It:"Sì, mi piace moltissimo.",phrase2Ipa:""},
+  {title:"11 really like + you",phrase1En:"Do they really like you?",phrase1It:"A loro piaci davvero?",phrase1Ipa:"",phrase2En:"Yes, they really like me.",phrase2It:"Sì, a loro piaccio davvero.",phrase2Ipa:""},
+  {title:"12 hate + them",phrase1En:"Why do you hate them?",phrase1It:"Perché li odi?",phrase1Ipa:"",phrase2En:"Because they are always late.",phrase2It:"Perché sono sempre in ritardo.",phrase2Ipa:""},
+  {title:"13 enjoy + it",phrase1En:"Did you enjoy it?",phrase1It:"Ti è piaciuto?",phrase1Ipa:"",phrase2En:"Yes, I really enjoyed it.",phrase2It:"Sì, mi è piaciuto davvero.",phrase2Ipa:""},
+  {title:"14 like + her",phrase1En:"Does your brother like her?",phrase1It:"A tuo fratello piace lei?",phrase1Ipa:"",phrase2En:"Yes, he likes her a lot.",phrase2It:"Sì, gli piace molto.",phrase2Ipa:""},
+  {title:"15 can't bear + him",phrase1En:"Can you bear him?",phrase1It:"Lo sopporti?",phrase1Ipa:"",phrase2En:"No, I can't bear him.",phrase2It:"No, non lo sopporto.",phrase2Ipa:""},
+  {title:"16 love + you",phrase1En:"Does he love you?",phrase1It:"Lui ti ama?",phrase1Ipa:"",phrase2En:"Yes, he loves me very much.",phrase2It:"Sì, mi ama molto.",phrase2Ipa:""},
+  {title:"17 mind + us",phrase1En:"Do you mind us staying here?",phrase1It:"Ti dispiace se restiamo qui?",phrase1Ipa:"",phrase2En:"No, I don't mind at all.",phrase2It:"No, non mi dispiace affatto.",phrase2Ipa:""},
+  {title:"18 quite like + it",phrase1En:"Do you quite like it?",phrase1It:"Ti piace abbastanza?",phrase1Ipa:"",phrase2En:"Yes, I quite like it.",phrase2It:"Sì, mi piace abbastanza.",phrase2Ipa:""},
+  {title:"19 dislike + them",phrase1En:"Why does she dislike them?",phrase1It:"Perché non le piacciono?",phrase1Ipa:"",phrase2En:"Because they are too noisy.",phrase2It:"Perché sono troppo rumorosi.",phrase2Ipa:""},
+  {title:"20 enjoy + them",phrase1En:"Do you enjoy them?",phrase1It:"Ti piacciono?",phrase1Ipa:"",phrase2En:"Yes, I enjoy them very much.",phrase2It:"Sì, mi piacciono molto.",phrase2Ipa:""},
+  {title:"21 like + me",phrase1En:"Does she like me?",phrase1It:"Io le piaccio?",phrase1Ipa:"",phrase2En:"Yes, she likes you a lot.",phrase2It:"Sì, le piaci molto.",phrase2Ipa:""},
+  {title:"22 love + them",phrase1En:"Do your parents love them?",phrase1It:"I tuoi genitori li amano?",phrase1Ipa:"",phrase2En:"Yes, they love them.",phrase2It:"Sì, li amano.",phrase2Ipa:""},
+  {title:"23 hate + him",phrase1En:"Why do you hate him so much?",phrase1It:"Perché lo odi così tanto?",phrase1Ipa:"",phrase2En:"Because he always lies to me.",phrase2It:"Perché mi mente sempre.",phrase2Ipa:""},
+  {title:"24 really like + it",phrase1En:"Do you really like it?",phrase1It:"Ti piace davvero?",phrase1Ipa:"",phrase2En:"Yes, I really like it.",phrase2It:"Sì, mi piace davvero.",phrase2Ipa:""},
+  {title:"25 mind + him",phrase1En:"Do you mind him coming with us?",phrase1It:"Ti dispiace se viene con noi?",phrase1Ipa:"",phrase2En:"No, I don't mind at all.",phrase2It:"No, non mi dispiace affatto.",phrase2Ipa:""},
+  {title:"26 like + you",phrase1En:"Do I like you?",phrase1It:"Mi piaci?",phrase1Ipa:"",phrase2En:"Yes, I like you very much.",phrase2It:"Sì, mi piaci molto.",phrase2Ipa:""},
+  {title:"27 can't stand + her",phrase1En:"Can you stand her?",phrase1It:"La sopporti?",phrase1Ipa:"",phrase2En:"No, I can't stand her at all.",phrase2It:"No, non la sopporto affatto.",phrase2Ipa:""},
+  {title:"28 enjoy + us",phrase1En:"Do they enjoy being with us?",phrase1It:"A loro piace stare con noi?",phrase1Ipa:"",phrase2En:"Yes, they enjoy it very much.",phrase2It:"Sì, gli piace molto.",phrase2Ipa:""},
+  {title:"29 love + me",phrase1En:"Do they love me?",phrase1It:"Mi amano?",phrase1Ipa:"",phrase2En:"Yes, they love you a lot.",phrase2It:"Sì, ti amano molto.",phrase2Ipa:""},
+  {title:"30 quite like + them",phrase1En:"Do you quite like them?",phrase1It:"Ti piacciono abbastanza?",phrase1Ipa:"",phrase2En:"Yes, I quite like them.",phrase2It:"Sì, mi piacciono abbastanza.",phrase2Ipa:""},
+  {title:"31 dislike + it",phrase1En:"Why do you dislike it?",phrase1It:"Perché non ti piace?",phrase1Ipa:"",phrase2En:"Because it is too expensive.",phrase2It:"Perché è troppo caro.",phrase2Ipa:""},
+  {title:"32 like + it",phrase1En:"Does she like it here?",phrase1It:"Le piace qui?",phrase1Ipa:"",phrase2En:"Yes, she likes it very much.",phrase2It:"Sì, le piace molto.",phrase2Ipa:""},
+  {title:"33 hate + her",phrase1En:"Why do you hate her?",phrase1It:"Perché la odi?",phrase1Ipa:"",phrase2En:"I don't hate her, I just dislike her.",phrase2It:"Non la odio, semplicemente non mi piace.",phrase2Ipa:""},
+  {title:"34 love + him",phrase1En:"Do you love him?",phrase1It:"Lo ami?",phrase1Ipa:"",phrase2En:"Yes, I love him very much.",phrase2It:"Sì, lo amo molto.",phrase2Ipa:""},
+  {title:"35 mind + them",phrase1En:"Do you mind them coming here?",phrase1It:"Ti dispiace se vengono qui?",phrase1Ipa:"",phrase2En:"No, I don't mind them at all.",phrase2It:"No, non mi dispiacciono affatto.",phrase2Ipa:""},
+  {title:"36 really like + her",phrase1En:"Do you really like her?",phrase1It:"Lei ti piace davvero?",phrase1Ipa:"",phrase2En:"Yes, I really like her.",phrase2It:"Sì, mi piace davvero.",phrase2Ipa:""},
+  {title:"37 enjoy + him",phrase1En:"Do you enjoy working with him?",phrase1It:"Ti piace lavorare con lui?",phrase1Ipa:"",phrase2En:"Yes, I enjoy it a lot.",phrase2It:"Sì, mi piace molto.",phrase2Ipa:""},
+  {title:"38 like + us",phrase1En:"Do they like us?",phrase1It:"A loro piacciamo?",phrase1Ipa:"",phrase2En:"Yes, they like us very much.",phrase2It:"Sì, a loro piacciamo molto.",phrase2Ipa:""},
+  {title:"39 can't bear + them",phrase1En:"Can you bear them?",phrase1It:"Li sopporti?",phrase1Ipa:"",phrase2En:"No, I can't bear them.",phrase2It:"No, non li sopporto.",phrase2Ipa:""},
+  {title:"40 love + it",phrase1En:"Do you love it?",phrase1It:"Lo ami?",phrase1Ipa:"",phrase2En:"Yes, I love it very much.",phrase2It:"Sì, lo amo molto.",phrase2Ipa:""},
+  {title:"41 quite like + you",phrase1En:"Do they quite like you?",phrase1It:"A loro piaci abbastanza?",phrase1Ipa:"",phrase2En:"Yes, they quite like me.",phrase2It:"Sì, a loro piaccio abbastanza.",phrase2Ipa:""},
+  {title:"42 dislike + me",phrase1En:"Why do they dislike me?",phrase1It:"Perché non piaccio loro?",phrase1Ipa:"",phrase2En:"I don't know why they dislike you.",phrase2It:"Non so perché non piaci loro.",phrase2Ipa:""},
+  {title:"43 mind + it",phrase1En:"Do you mind it?",phrase1It:"Ti dispiace?",phrase1Ipa:"",phrase2En:"No, I don't mind it at all.",phrase2It:"No, non mi dispiace affatto.",phrase2Ipa:""},
+  {title:"44 like + them",phrase1En:"Does she like them?",phrase1It:"Le piacciono?",phrase1Ipa:"",phrase2En:"Yes, she likes them very much.",phrase2It:"Sì, le piacciono molto.",phrase2Ipa:""},
+  {title:"45 hate + us",phrase1En:"Why does he hate us?",phrase1It:"Perché ci odia?",phrase1Ipa:"",phrase2En:"I don't know why he hates us.",phrase2It:"Non so perché ci odia.",phrase2Ipa:""},
+  {title:"46 enjoy + her",phrase1En:"Do you enjoy her company?",phrase1It:"Ti piace la sua compagnia?",phrase1Ipa:"",phrase2En:"Yes, I really enjoy it.",phrase2It:"Sì, mi piace davvero.",phrase2Ipa:""},
+  {title:"47 love + us",phrase1En:"Does she love us?",phrase1It:"Ci ama?",phrase1Ipa:"",phrase2En:"Yes, she loves us deeply.",phrase2It:"Sì, ci ama profondamente.",phrase2Ipa:""},
+  {title:"48 really like + them",phrase1En:"Do you really like them?",phrase1It:"Ti piacciono davvero?",phrase1Ipa:"",phrase2En:"Yes, I really like them.",phrase2It:"Sì, mi piacciono davvero.",phrase2Ipa:""},
+  {title:"49 can't stand + it",phrase1En:"Can you stand it?",phrase1It:"Lo sopporti?",phrase1Ipa:"",phrase2En:"No, I can't stand it anymore.",phrase2It:"No, non lo sopporto più.",phrase2Ipa:""},
+  {title:"50 like + you all",phrase1En:"Do I like you all?",phrase1It:"Mi piacete tutti?",phrase1Ipa:"",phrase2En:"Yes, I really like you all.",phrase2It:"Sì, mi piacete davvero tutti.",phrase2Ipa:""}
+];
+
+// ============ STORAGE ROBUSTO ============
+const LS_KEY = 'wqp_data_v1';
+let useIndexedDB = false;
+let db = null;
+
+function tryOpenDB() {
+  return new Promise((resolve) => {
+    try {
+      if (!window.indexedDB) { resolve(false); return; }
+      const req = indexedDB.open('WordQuizProDB', 1);
+      req.onerror = () => resolve(false);
+      req.onsuccess = () => { db = req.result; resolve(true); };
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv', { keyPath: 'key' });
+      };
+      setTimeout(() => resolve(false), 3000);
+    } catch (e) { resolve(false); }
+  });
+}
+
+async function idbGet(key) {
+  if (!db) return null;
+  return new Promise((res) => {
+    try {
+      const r = db.transaction('kv').objectStore('kv').get(key);
+      r.onsuccess = () => res(r.result ? r.result.value : null);
+      r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+}
+
+async function idbSet(key, value) {
+  if (!db) return;
+  return new Promise((res) => {
+    try {
+      const r = db.transaction('kv', 'readwrite').objectStore('kv').put({ key, value });
+      r.onsuccess = () => res();
+      r.onerror = () => res();
+    } catch (e) { res(); }
+  });
+}
+
+async function loadData(key, fallback) {
+  try {
+    if (useIndexedDB) {
+      const v = await idbGet(key);
+      if (v !== null && v !== undefined) return v;
+      return fallback;
+    }
+    const raw = localStorage.getItem(LS_KEY + '_' + key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+
+async function saveData(key, value) {
+  try {
+    if (useIndexedDB) {
+      await idbSet(key, value);
+    } else {
+      localStorage.setItem(LS_KEY + '_' + key, JSON.stringify(value));
+    }
+  } catch (e) { console.warn('saveData failed', e); }
+}
+
+// ============ STATO ============
+let dialogues = [];
+let settings = { mode: "C", voice: "en-GB" };
+let results = [];
+let currentIndex = 0;
+let revealed = false;
+let currentCloze = null;
+let currentTest = null;
+let recognition = null;
+let micListening = false;
+
+function $(id) { return document.getElementById(id); }
+
+function normalizeText(s) {
+  return String(s || "").toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ").trim();
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ============ TAB ============
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    $(tab.dataset.tab).classList.add("active");
+    
+    const tabName = tab.dataset.tab;
+    if (tabName === 'cloze' && !currentCloze) makeCloze();
+    if (tabName === 'test' && !currentTest) makeTest();
+    if (tabName === 'dialogues') renderDialogue();
+  });
+});
+
+// ============ MODALITÀ ============
+const MODE_INFO = {
+  A: "Modalità A: entrambe le frasi visibili. Usa 🔊 per ascoltare.",
+  B: "Modalità B: la seconda frase è nascosta. Premi Mostra risposta.",
+  C: "Modalità C: la seconda frase è nascosta. Scrivila tu e verifica."
+};
+
+function setMode(mode, save = true) {
+  settings.mode = mode;
+  if (save) saveData('settings', settings);
+  revealed = false;
+  updateModeUI();
+  renderDialogue();
+}
+
+function updateModeUI() {
+  document.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === settings.mode));
+  document.querySelectorAll('input[name="settingsMode"]').forEach(r => r.checked = (r.value === settings.mode));
+  $("modeInfo").textContent = MODE_INFO[settings.mode] || MODE_INFO.A;
+}
+
+document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+document.querySelectorAll('input[name="settingsMode"]').forEach(r => r.addEventListener("change", e => setMode(e.target.value)));
+
+// ============ RENDER DIALOGHI ============
+function renderDialogue() {
+  const p2area = $("p2area"), p2wrap = $("p2wrap");
+  if (!dialogues.length) {
+    $("dlgTitle").textContent = "Nessun dialogo";
+    ["p1en","p1it","p1ipa","p2en","p2it","p2ipa"].forEach(id => $(id).textContent = "");
+    p2area.innerHTML = "";
+    p2wrap.classList.remove("blurred");
+    return;
+  }
+  if (currentIndex < 0) currentIndex = 0;
+  if (currentIndex >= dialogues.length) currentIndex = dialogues.length - 1;
+  const d = dialogues[currentIndex];
+  $("dlgTitle").textContent = `${currentIndex + 1} / ${dialogues.length} · ${d.title}`;
+  $("p1en").textContent = d.phrase1En || "";
+  $("p1it").textContent = d.phrase1It || "";
+  $("p1ipa").textContent = d.phrase1Ipa || "";
+  $("p2en").textContent = d.phrase2En || "";
+  $("p2it").textContent = d.phrase2It || "";
+  $("p2ipa").textContent = d.phrase2Ipa || "";
+  p2area.innerHTML = "";
+  p2wrap.classList.remove("blurred");
+  if (settings.mode === "A") return;
+  if (settings.mode === "B") {
+    if (!revealed) {
+      p2wrap.classList.add("blurred");
+      const btn = document.createElement("button");
+      btn.className = "btn btn-warning btn-block";
+      btn.style.marginTop = "10px";
+      btn.textContent = "👁 Mostra risposta";
+      btn.onclick = () => { revealed = true; renderDialogue(); };
+      p2area.appendChild(btn);
+    }
+    return;
+  }
+  if (settings.mode === "C") {
+    if (!revealed) {
+      p2wrap.classList.add("blurred");
+      const input = document.createElement("input");
+      input.type = "text"; input.className = "text-input"; input.id = "fillInput";
+      input.style.marginTop = "10px"; input.placeholder = "Scrivi qui la frase 2 in inglese...";
+      p2area.appendChild(input);
+      const row = document.createElement("div"); row.className = "btn-row";
+      const verify = document.createElement("button");
+      verify.className = "btn btn-success"; verify.textContent = "✓ Verifica"; verify.onclick = checkFill;
+      const show = document.createElement("button");
+      show.className = "btn btn-secondary"; show.textContent = "👁 Mostra"; 
+      show.onclick = () => { revealed = true; renderDialogue(); };
+      row.appendChild(verify); row.appendChild(show);
+      p2area.appendChild(row);
+      const fb = document.createElement("div"); fb.className = "feedback"; fb.id = "fillFeedback";
+      p2area.appendChild(fb);
+    }
+  }
+}
+
+function checkFill() {
+  const d = dialogues[currentIndex];
+  const input = $("fillInput"), fb = $("fillFeedback");
+  if (!input || !fb || !d) return;
+  if (normalizeText(input.value) === normalizeText(d.phrase2En)) {
+    fb.textContent = "✓ Esatto!"; fb.className = "feedback ok";
+    setTimeout(() => { revealed = true; renderDialogue(); }, 800);
+  } else {
+    fb.textContent = "✗ Corretto: " + d.phrase2En; fb.className = "feedback no";
+  }
+}
+
+$("btnPrev").addEventListener("click", () => { if (currentIndex > 0) { currentIndex--; revealed = false; renderDialogue(); } });
+$("btnNext").addEventListener("click", () => { if (currentIndex < dialogues.length - 1) { currentIndex++; revealed = false; renderDialogue(); } });
+
+// ============ TTS ============
+function chooseVoice(lang) {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const w = String(lang || "en-GB").toLowerCase();
+  return voices.find(v => v.lang && v.lang.toLowerCase() === w) ||
+         voices.find(v => v.lang && v.lang.toLowerCase().startsWith(w.split("-")[0])) ||
+         voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) || null;
+}
+
+function speakText(text, btn) {
+  if (!window.speechSynthesis) { alert("TTS non supportato."); return; }
+  window.speechSynthesis.cancel();
+  document.querySelectorAll(".speak-btn, .question-box").forEach(b => b.classList.remove("speaking"));
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    const lang = settings.voice || "en-GB";
+    const v = chooseVoice(lang);
+    u.lang = lang; if (v) u.voice = v;
+    u.rate = 0.95; u.pitch = 1; u.volume = 1;
+    if (btn) {
+      btn.classList.add("speaking");
+      u.onend = () => btn.classList.remove("speaking");
+      u.onerror = () => btn.classList.remove("speaking");
+    }
+    window.speechSynthesis.speak(u);
+  }, 70);
+}
+
+function stopSpeaking() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.querySelectorAll(".speak-btn, .question-box").forEach(b => b.classList.remove("speaking"));
+}
+
+$("speak1").addEventListener("click", function() { speakText(dialogues[currentIndex]?.phrase1En || "", this); });
+$("speak2").addEventListener("click", function() { speakText(dialogues[currentIndex]?.phrase2En || "", this); });
+$("btnSpeakAll").addEventListener("click", function() {
+  const d = dialogues[currentIndex]; if (!d) return;
+  speakText(`${d.phrase1En}. ${d.phrase2En}.`, this);
+});
+$("btnStop").addEventListener("click", stopSpeaking);
+
+function refreshVoiceInfo() {
+  const box = $("voiceInfo");
+  if (!window.speechSynthesis) { box.className = "voice-info show warn"; box.textContent = "TTS non supportato."; return; }
+  const voices = window.speechSynthesis.getVoices();
+  const v = chooseVoice(settings.voice);
+  if (v) { box.className = "voice-info show ok"; box.textContent = `Voce: ${v.name} (${v.lang})`; }
+  else if (voices.length) { box.className = "voice-info show warn"; box.textContent = "Nessuna voce inglese. Uso predefinita."; }
+  else { box.className = "voice-info show warn"; box.textContent = "Voci in caricamento..."; }
+}
+
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = refreshVoiceInfo;
+  setTimeout(refreshVoiceInfo, 200); setTimeout(refreshVoiceInfo, 700); setTimeout(refreshVoiceInfo, 1500);
+}
+
+$("voiceLang").addEventListener("change", e => {
+  settings.voice = e.target.value;
+  saveData('settings', settings);
+  if (recognition) recognition.lang = settings.voice;
+  refreshVoiceInfo();
+});
+$("btnTestVoice").addEventListener("click", function() { speakText("Hello! This is a test.", this); });
+
+// ============ MIC ============
+function initMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = $("btnMic"), status = $("micStatus");
+  if (!SR) {
+    btn.disabled = true; status.className = "mic-status err";
+    status.textContent = "❌ Riconoscimento non supportato. Usa Chrome/Edge.";
+    return;
+  }
+  recognition = new SR();
+  recognition.lang = settings.voice || "en-GB";
+  recognition.continuous = false; recognition.interimResults = true; recognition.maxAlternatives = 1;
+  recognition.onstart = () => {
+    micListening = true; btn.textContent = "⏹ Ferma";
+    $("micResult").textContent = "...in ascolto...";
+    $("micResult").classList.add("listening");
+    status.className = "mic-status ok"; status.textContent = "🎤 Parla adesso.";
+  };
+  recognition.onresult = e => {
+    let t = ""; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+    $("micResult").textContent = t || "...";
+  };
+  recognition.onerror = e => {
+    micListening = false; btn.textContent = "🎤 Inizia";
+    $("micResult").classList.remove("listening");
+    let m = "Errore: " + e.error;
+    if (e.error === "not-allowed") m = "❌ Permesso microfono negato.";
+    if (e.error === "no-speech") m = "❌ Nessuna voce rilevata.";
+    if (e.error === "network") m = "❌ Serve internet.";
+    if (e.error === "audio-capture") m = "❌ Microfono non trovato.";
+    status.className = "mic-status err"; status.textContent = m;
+  };
+  recognition.onend = () => {
+    micListening = false; btn.textContent = "🎤 Inizia a parlare";
+    $("micResult").classList.remove("listening");
+    status.className = "mic-status ok"; status.textContent = "✓ Terminato.";
+  };
+}
+
+$("btnMic").addEventListener("click", () => {
+  if (!recognition) return;
+  if (micListening) recognition.stop();
+  else {
+    try { recognition.lang = settings.voice || "en-GB"; recognition.start(); }
+    catch (err) { $("micStatus").className = "mic-status err"; $("micStatus").textContent = "❌ " + err.message; }
+  }
+});
+
+// ============ CLOZE ============
+function makeCloze() {
+  try {
+    const sentenceBox = $("clozeSentence");
+    const input = $("clozeInput");
+    const feedback = $("clozeFeedback");
+    if (input) input.value = "";
+    if (feedback) { feedback.textContent = ""; feedback.className = "feedback"; }
+
+    if (!dialogues || !dialogues.length) {
+      sentenceBox.innerHTML = "Nessun dialogo disponibile. Vai su Contenuti e aggiungi o ripristina i dialoghi.";
+      currentCloze = null;
+      return;
+    }
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const d = randomItem(dialogues);
+      const useFirst = Math.random() < 0.5;
+      const sentence = String((useFirst ? d.phrase1En : d.phrase2En) || "").trim();
+      if (!sentence) continue;
+
+      const clean = sentence.replace(/[.,!?;:]/g, "");
+      const words = clean.split(/\s+/).filter(w => w.length > 2 && /[a-zA-Z]/.test(w));
+      if (!words.length) continue;
+
+      const answer = randomItem(words);
+      currentCloze = { sentence, answer };
+
+      const safeSentence = escapeHtml(sentence);
+      const safeAnswerEsc = escapeHtml(answer);
+      
+      if (safeSentence.includes(safeAnswerEsc)) {
+        sentenceBox.innerHTML = safeSentence.replace(safeAnswerEsc, '<span class="blank">_____</span>');
+      } else {
+        sentenceBox.innerHTML = safeSentence + ' <span class="blank">_____</span>';
+      }
+      return;
+    }
+
+    const d = dialogues[0];
+    const sentence = d.phrase1En || d.phrase2En || "Hello world";
+    currentCloze = { sentence, answer: sentence.split(' ')[0] };
+    sentenceBox.innerHTML = escapeHtml(sentence);
+  } catch (err) {
+    console.error('makeCloze error:', err);
+    $("clozeSentence").innerHTML = "Errore caricamento. Premi Prossimo.";
+    currentCloze = null;
+  }
+}
+
+function checkCloze() {
+  if (!currentCloze) { makeCloze(); return; }
+  const user = $("clozeInput").value.trim().toLowerCase();
+  const fb = $("clozeFeedback");
+  if (user === currentCloze.answer.toLowerCase()) {
+    fb.textContent = "✓ Corretto!"; fb.className = "feedback ok";
+  } else {
+    fb.textContent = "✗ La parola corretta è: " + currentCloze.answer; fb.className = "feedback no";
+  }
+}
+
+$("btnCheckCloze").addEventListener("click", checkCloze);
+$("btnNextCloze").addEventListener("click", makeCloze);
+$("btnSpeakCloze").addEventListener("click", function() {
+  if (currentCloze && currentCloze.sentence) speakText(currentCloze.sentence, this);
+});
+$("clozeInput").addEventListener("keydown", e => { if (e.key === "Enter") checkCloze(); });
+
+// ============ TEST ============
+function updateStats() {
+  const c = results.filter(r => r && r.correct).length;
+  $("statCorrect").textContent = c;
+  $("statTotal").textContent = results.length;
+}
+
+function makeTest() {
+  try {
+    const qBox = $("testQuestion"), oBox = $("testOptions");
+    if (!dialogues || !dialogues.length) {
+      qBox.innerHTML = "Nessun dialogo disponibile.";
+      oBox.innerHTML = ""; currentTest = null; return;
+    }
+    const d = randomItem(dialogues);
+    const useFirst = Math.random() < 0.5;
+    const question = String((useFirst ? d.phrase1En : d.phrase2En) || "");
+    const correct = String((useFirst ? d.phrase1It : d.phrase2It) || "");
+    const wrongPool = [];
+    dialogues.forEach(x => {
+      if (x !== d) { if (x.phrase1It) wrongPool.push(x.phrase1It); if (x.phrase2It) wrongPool.push(x.phrase2It); }
+    });
+    const options = new Set([correct]);
+    shuffle(wrongPool).forEach(item => { if (options.size < 4 && item !== correct) options.add(item); });
+    let f = 1; while (options.size < 4) { options.add("Opzione errata " + f); f++; }
+    currentTest = { question, correct };
+    qBox.innerHTML = escapeHtml(question) + '<span class="question-hint">🔊 Clicca per ascoltare</span>';
+    oBox.innerHTML = "";
+    shuffle([...options]).forEach(opt => {
+      const div = document.createElement("div");
+      div.className = "option"; div.textContent = opt;
+      div.onclick = () => answerTest(opt, div);
+      oBox.appendChild(div);
+    });
+  } catch (err) {
+    console.error('makeTest error:', err);
+    $("testQuestion").innerHTML = "Errore caricamento.";
+  }
+}
+
+async function answerTest(selected, el) {
+  if (!currentTest) return;
+  const ok = selected === currentTest.correct;
+  document.querySelectorAll(".option").forEach(o => {
+    o.classList.add("disabled");
+    if (o.textContent === currentTest.correct) o.classList.add("correct");
+  });
+  if (!ok) el.classList.add("wrong");
+  results.push({ question: currentTest.question, answer: selected, correct: ok, ts: Date.now() });
+  await saveData('results', results);
+  updateStats();
+}
+
+$("testQuestion").addEventListener("click", function() {
+  if (currentTest && currentTest.question) speakText(currentTest.question, this);
+});
+$("btnNewQuestion").addEventListener("click", makeTest);
+
+// ============ CONTENUTI ============
+$("dlgForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const d = {
+    title: $("fTitle").value.trim(),
+    phrase1En: $("f1en").value.trim(),
+    phrase1It: $("f1it").value.trim(),
+    phrase1Ipa: $("f1ipa").value.trim(),
+    phrase2En: $("f2en").value.trim(),
+    phrase2It: $("f2it").value.trim(),
+    phrase2Ipa: $("f2ipa").value.trim()
+  };
+  if (!d.title || !d.phrase1En || !d.phrase1It || !d.phrase2En || !d.phrase2It) {
+    alert("Compila tutti i campi obbligatori."); return;
+  }
+  dialogues.push(d);
+  currentIndex = dialogues.length - 1; revealed = false;
+  await saveData('dialogues', dialogues);
+  renderSaved(); renderDialogue(); makeCloze(); makeTest();
+  e.target.reset();
+  alert("Dialogo salvato.");
+});
+
+function renderSaved() {
+  const list = $("savedList"); list.innerHTML = "";
+  $("savedCount").textContent = dialogues.length;
+  if (!dialogues.length) { list.innerHTML = '<div class="subtitle">Nessun dialogo.</div>'; return; }
+  dialogues.forEach((d, idx) => {
+    const item = document.createElement("div"); item.className = "saved-item";
+    const info = document.createElement("div"); info.className = "saved-item-info";
+    const h4 = document.createElement("h4"); h4.textContent = d.title || "Senza titolo";
+    const p = document.createElement("p"); p.textContent = `${d.phrase1En || ""} / ${d.phrase2En || ""}`;
+    info.appendChild(h4); info.appendChild(p);
+    const del = document.createElement("button");
+    del.className = "btn btn-danger"; del.textContent = "Elimina";
+    del.onclick = async () => {
+      if (!confirm("Eliminare?")) return;
+      dialogues.splice(idx, 1);
+      if (currentIndex >= dialogues.length) currentIndex = Math.max(0, dialogues.length - 1);
+      await saveData('dialogues', dialogues);
+      renderSaved(); renderDialogue(); makeCloze(); makeTest();
+    };
+    item.appendChild(info); item.appendChild(del); list.appendChild(item);
+  });
+}
+
+function exportData() {
+  const data = { app: "WordQuiz Pro", exportDate: new Date().toISOString(), dialogues };
+  saveBackup(`wordquiz-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(data, null, 2));
+}
+
+// Backup: su APK (Capacitor) usa Filesystem + Share, altrove il download classico
+async function saveBackup(name, text) {
+  const C = window.Capacitor;
+  if (C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.Filesystem && C.Plugins.Share) {
+    try {
+      const f = await C.Plugins.Filesystem.writeFile({ path: name, data: text, directory: "CACHE", encoding: "utf8" });
+      await C.Plugins.Share.share({ title: name, url: f.uri, dialogTitle: "Salva backup" });
+    } catch (err) { console.error("backup nativo:", err); }
+    return;
+  }
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$("btnExport").addEventListener("click", exportData);
+$("btnDownload").addEventListener("click", exportData);
+$("btnImport").addEventListener("click", () => $("importFile").click());
+
+$("importFile").addEventListener("change", e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      const imported = normalizeImport(parsed);
+      if (!imported.length) throw new Error("Nessun dialogo valido.");
+      let action = "replace";
+      if (dialogues.length) {
+        action = confirm(`Trovati ${imported.length} dialoghi.\n\nOK = Sostituisci\nAnnulla = Aggiungi`) ? "replace" : "append";
+      }
+      dialogues = action === "replace" ? imported : [...dialogues, ...imported];
+      currentIndex = 0; revealed = false;
+      await saveData('dialogues', dialogues);
+      renderSaved(); renderDialogue(); makeCloze(); makeTest();
+      $("importStatus").textContent = `✅ Importati ${imported.length} dialoghi.`;
+    } catch (err) {
+      $("importStatus").textContent = "❌ " + err.message;
+      alert("Errore: " + err.message);
+    }
+  };
+  reader.readAsText(file, "utf-8");
+  e.target.value = "";
+});
+
+function normalizeImport(data) {
+  let list = null;
+  if (Array.isArray(data)) list = data;
+  else if (data && Array.isArray(data.dialogues)) list = data.dialogues;
+  else if (data && Array.isArray(data.items)) list = data.items;
+  else if (data && typeof data === "object" && (data.title || data.phrase1En)) list = [data];
+  if (!list) throw new Error('Formato non riconosciuto.');
+  return list.map((r, i) => normalizeDialogue(r, i)).filter(d => d.phrase1En && d.phrase1It && d.phrase2En && d.phrase2It);
+}
+
+function normalizeDialogue(raw, idx) {
+  if (!raw || typeof raw !== "object") return {};
+  const fv = keys => { for (const k of keys) if (raw[k] != null && String(raw[k]).trim() !== "") return String(raw[k]).trim(); return ""; };
+  return {
+    title: fv(["title","name","titolo"]) || `Dialogo ${idx+1}`,
+    phrase1En: fv(["phrase1En","p1en","en1","english1","phrase1"]),
+    phrase1It: fv(["phrase1It","p1it","it1","italian1"]),
+    phrase1Ipa: fv(["phrase1Ipa","p1ipa","ipa1"]),
+    phrase2En: fv(["phrase2En","p2en","en2","english2","phrase2"]),
+    phrase2It: fv(["phrase2It","p2it","it2","italian2"]),
+    phrase2Ipa: fv(["phrase2Ipa","p2ipa","ipa2"])
+  };
+}
+
+$("btnRestore").addEventListener("click", async () => {
+  if (!confirm("Ripristinare i 50 dialoghi inclusi?")) return;
+  dialogues = JSON.parse(JSON.stringify(STARTER_DIALOGUES));
+  currentIndex = 0; revealed = false;
+  await saveData('dialogues', dialogues);
+  renderSaved(); renderDialogue(); makeCloze(); makeTest();
+  alert("Ripristinati.");
+});
+
+$("btnResetTest").addEventListener("click", async () => {
+  if (!confirm("Azzerare risultati test?")) return;
+  results = [];
+  await saveData('results', results);
+  updateStats();
+});
+
+// ============ AVVIO ============
+async function init() {
+  try {
+    useIndexedDB = await tryOpenDB();
+    
+    const savedDlg = await loadData('dialogues', null);
+    if (Array.isArray(savedDlg) && savedDlg.length > 0) {
+      dialogues = savedDlg;
+    } else {
+      dialogues = JSON.parse(JSON.stringify(STARTER_DIALOGUES));
+      await saveData('dialogues', dialogues);
+    }
+    
+    const savedSet = await loadData('settings', null);
+    if (savedSet && typeof savedSet === 'object') settings = { ...settings, ...savedSet };
+    
+    const savedRes = await loadData('results', null);
+    if (Array.isArray(savedRes)) results = savedRes;
+    
+    initMic();
+    updateModeUI();
+    renderDialogue();
+    renderSaved();
+    updateStats();
+    makeCloze();
+    makeTest();
+    $("voiceLang").value = settings.voice || "en-GB";
+    refreshVoiceInfo();
+  } catch (err) {
+    console.error('init error:', err);
+    dialogues = JSON.parse(JSON.stringify(STARTER_DIALOGUES));
+    renderDialogue(); makeCloze(); makeTest(); renderSaved(); updateStats();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+<script>
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>

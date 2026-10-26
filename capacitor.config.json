@@ -1,0 +1,11 @@
+{
+  "appId": "com.wordquiz.pro",
+  "appName": "WordQuiz Pro",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}
