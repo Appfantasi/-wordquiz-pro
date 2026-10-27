@@ -9,7 +9,7 @@
   "scripts": {
     "prova": "npx --yes http-server www -p 8080 -c-1",
     "start": "electron .",
-    "win": "electron-builder --win --x64",
+    "win": "electron-builder --win --x64 --publish never",
     "build:tts": "esbuild scripts/tts-entry.js --bundle --platform=browser --format=iife --outfile=www/tts.bundle.js"
   },
   "devDependencies": {
